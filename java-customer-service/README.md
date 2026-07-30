@@ -1,67 +1,44 @@
-# Java Customer Service
+# Customer Service
 
-Spring Boot microservice for customer management.
+Manages customer profiles and information.
 
-## Overview
+## Stack
 
-Manages customer CRUD operations with validation and error handling. Provides REST API for customer data access.
+Java 17 • Spring Boot 3.2 • PostgreSQL • Maven
 
-## Technology Stack
+## Prerequisites
 
-- Java 17, Spring Boot 3.2.0, Spring Data JPA
-- H2 Database (in-memory), Lombok
-- SpringDoc OpenAPI 3 (Swagger), JUnit 5, Mockito
-
-## Quick Start
-
-```bash
-# Build and run
-./mvnw spring-boot:run
-
-# Production build
-./mvnw clean package -DskipTests
-java -jar target/java-customer-service-1.0.0.jar
-```
-
-Access: http://localhost:8081/swagger-ui.html
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/customers` | Create customer |
-| GET | `/customers` | List customers |
-| GET | `/customers/{id}` | Get customer |
-| PUT | `/customers/{id}` | Update customer |
-| DELETE | `/customers/{id}` | Delete customer |
-| GET | `/health` | Health check |
+- JDK 17+
+- PostgreSQL database
 
 ## Configuration
 
-```yaml
-server:
-  port: 8081
+Update `application.properties`:
 
-spring:
-  datasource:
-    url: jdbc:h2:mem:customerdb
-    username: sa
-    password:
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/customerdb
+spring.datasource.username=postgres
+spring.datasource.password=password
 ```
 
-## Testing
+## Start Service
 
 ```bash
-# All tests
-./mvnw test
-
-# Unit tests only
-./mvnw test -Dtest=*ServiceTest
-
-# Integration tests only
-./mvnw test -Dtest=*IntegrationTest
+./mvnw spring-boot:run
 ```
 
-## License
+Runs on port **8081** | API docs at `/swagger-ui.html`
 
-Part of Order Management System demonstration project.
+## API Endpoints
+
+- `POST /customers` - Create customer
+- `GET /customers` - List all customers
+- `GET /customers/{id}` - Get customer details
+- `PUT /customers/{id}` - Update customer
+- `DELETE /customers/{id}` - Delete customer
+
+## Run Tests
+
+```bash
+./mvnw test
+```
