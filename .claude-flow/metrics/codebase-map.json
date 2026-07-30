@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-07-30T12:21:29.484Z",
+  "projectRoot": "/Users/arghyabanerjee/Desktop/Code2Spec/order-management-system-main",
+  "structure": {
+    "hasPackageJson": false,
+    "hasTsConfig": false,
+    "hasClaudeConfig": true,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1785414089484
+}

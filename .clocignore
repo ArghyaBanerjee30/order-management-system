@@ -1,0 +1,8 @@
+venv/
+target/
+__pycache__/
+.pytest_cache/
+.mvn/
+node_modules/
+*.pyc
+.git/

@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: order-service-test
+
+  # H2 Test Database Configuration
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # JPA Configuration for Tests
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  h2:
+    console:
+      enabled: false
+
+# Logging Configuration for Tests
+logging:
+  level:
+    root: INFO
+    com.orderservice: DEBUG
+    org.springframework.web: WARN
+    org.springframework.test: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+
+# Test-specific Inventory Service Configuration
+inventory:
+  service:
+    url: http://localhost:8000
+
+# Server Configuration for Tests
+server:
+  port: 0  # Random port for tests
