@@ -20,13 +20,13 @@ public class CustomerResponse {
     private LocalDateTime createdAt;
 
     public static CustomerResponse fromEntity(Customer customer) {
-        CustomerResponse response = new CustomerResponse();
-        response.setId(customer.getId());
-        response.setFirstName(customer.getFirstName());
-        response.setLastName(customer.getLastName());
-        response.setEmail(customer.getEmail());
-        response.setPhone(customer.getPhone());
-        response.setCreatedAt(customer.getCreatedAt());
-        return response;
+        return new CustomerResponse(
+                customer.getId(),
+                customer.getFirstName(),
+                customer.getLastName(),
+                customer.getEmail(),
+                customer.getPhone(),
+                customer.getCreatedAt()
+        );
     }
 }

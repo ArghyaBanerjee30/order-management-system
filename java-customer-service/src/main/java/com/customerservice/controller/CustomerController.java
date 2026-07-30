@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/customers")
 @RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Customer", description = "Customer management APIs")
 public class CustomerController {
 
@@ -27,25 +26,19 @@ public class CustomerController {
     @PostMapping
     @Operation(summary = "Create a new customer")
     public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CreateCustomerRequest request) {
-        log.info("POST /customers - Creating customer");
-        CustomerResponse response = customerService.createCustomer(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerService.createCustomer(request));
     }
 
     @GetMapping
     @Operation(summary = "Get all customers")
     public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
-        log.info("GET /customers - Fetching all customers");
-        List<CustomerResponse> customers = customerService.getAllCustomers();
-        return ResponseEntity.ok(customers);
+        return ResponseEntity.ok(customerService.getAllCustomers());
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get customer by ID")
     public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable Long id) {
-        log.info("GET /customers/{} - Fetching customer", id);
-        CustomerResponse response = customerService.getCustomerById(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 
     @PutMapping("/{id}")
@@ -53,15 +46,12 @@ public class CustomerController {
     public ResponseEntity<CustomerResponse> updateCustomer(
             @PathVariable Long id,
             @Valid @RequestBody UpdateCustomerRequest request) {
-        log.info("PUT /customers/{} - Updating customer", id);
-        CustomerResponse response = customerService.updateCustomer(id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(customerService.updateCustomer(id, request));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete customer")
     public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
-        log.info("DELETE /customers/{} - Deleting customer", id);
         customerService.deleteCustomer(id);
         return ResponseEntity.noContent().build();
     }
