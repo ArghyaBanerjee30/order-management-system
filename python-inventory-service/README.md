@@ -11,40 +11,39 @@ Python 3.11+ • FastAPI • SQLAlchemy • PostgreSQL
 - Python 3.11+
 - PostgreSQL database
 
-## Setup
+## Quick Start
 
-**1. Create virtual environment**
+**Option 1: Use startup script (Recommended)**
 ```bash
 cd python-inventory-service
+./start.sh
+```
+
+**Option 2: Manual setup**
+```bash
+cd python-inventory-service
+
+# Create and setup virtual environment
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+./venv/bin/pip install --upgrade pip setuptools wheel
+./venv/bin/pip install -r requirements.txt
 
-**2. Install dependencies**
-```bash
-pip install -r requirements.txt
-```
+# Setup database
+./venv/bin/alembic upgrade head
 
-**3. Setup database**
-```bash
-alembic upgrade head
+# Start service
+./venv/bin/uvicorn inventory_service.main:app --reload --port 8000
 ```
 
 ## Configuration
 
-Update `.env` or `database/config.py`:
+Update `database/config.py` for PostgreSQL:
 
-```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/inventorydb
+```python
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:password@localhost:5432/inventorydb"
 ```
 
-## Start Service
-
-**Ensure virtual environment is activated:**
-```bash
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-uvicorn inventory_service.main:app --reload --port 8000
-```
+Default: SQLite (`inventory.db`)
 
 Runs on port **8000** | API docs at `/docs`
 
