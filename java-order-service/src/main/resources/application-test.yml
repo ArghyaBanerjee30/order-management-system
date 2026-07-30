@@ -19,3 +19,8 @@ logging:
     root: WARN
     com.orderservice: INFO
     org.springframework.web: INFO
+
+# External Services Configuration
+customer:
+  service:
+    url: http://localhost:8081

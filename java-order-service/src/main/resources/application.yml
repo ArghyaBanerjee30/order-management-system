@@ -62,6 +62,10 @@ inventory:
   service:
     url: http://localhost:8001
 
+customer:
+  service:
+    url: http://localhost:8081
+
 # REST Client Configuration
 rest:
   client:

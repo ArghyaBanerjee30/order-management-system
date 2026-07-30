@@ -17,6 +17,9 @@ public class RestClientConfig {
     @Value("${inventory.service.url:http://localhost:8001}")
     private String inventoryServiceUrl;
 
+    @Value("${customer.service.url:http://localhost:8081}")
+    private String customerServiceUrl;
+
     @Value("${rest.client.connect-timeout:5000}")
     private int connectTimeout;
 
@@ -34,5 +37,10 @@ public class RestClientConfig {
     @Bean
     public String inventoryServiceUrl() {
         return inventoryServiceUrl;
+    }
+
+    @Bean
+    public String customerServiceUrl() {
+        return customerServiceUrl;
     }
 }
