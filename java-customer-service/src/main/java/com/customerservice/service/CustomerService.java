@@ -6,82 +6,95 @@ import com.customerservice.dto.UpdateCustomerRequest;
 import com.customerservice.entity.Customer;
 import com.customerservice.exception.CustomerNotFoundException;
 import com.customerservice.exception.DuplicateCustomerException;
+import com.customerservice.mapper.CustomerMapper;
 import com.customerservice.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CustomerService {
+
+    private static final String CREATE_OPERATION = "create";
+    private static final String UPDATE_OPERATION = "update";
 
     private final CustomerRepository customerRepository;
 
     @Transactional
     public CustomerResponse createCustomer(CreateCustomerRequest request) {
-        if (customerRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateCustomerException(request.getEmail(), "create");
-        }
-
-        Customer customer = new Customer();
-        customer.setFirstName(request.getFirstName());
-        customer.setLastName(request.getLastName());
-        customer.setEmail(request.getEmail());
-        customer.setPhone(request.getPhone());
-
-        return CustomerResponse.fromEntity(customerRepository.save(customer));
+        validateEmailNotExists(request.getEmail(), CREATE_OPERATION);
+        return saveAndConvert(CustomerMapper.toEntity(request));
     }
 
     @Transactional(readOnly = true)
     public CustomerResponse getCustomerById(Long id) {
-        return CustomerResponse.fromEntity(
-                customerRepository.findById(id)
-                        .orElseThrow(() -> new CustomerNotFoundException(id))
-        );
+        return findCustomerById(id)
+                .map(CustomerMapper::toResponse)
+                .orElseThrow(() -> new CustomerNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
     public List<CustomerResponse> getAllCustomers() {
         return customerRepository.findAll()
                 .stream()
-                .map(CustomerResponse::fromEntity)
+                .map(CustomerMapper::toResponse)
                 .toList();
     }
 
     @Transactional
     public CustomerResponse updateCustomer(Long id, UpdateCustomerRequest request) {
-        Customer customer = customerRepository.findById(id)
+        return findCustomerById(id)
+                .map(customer -> applyUpdates(customer, request))
+                .map(this::saveAndConvert)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
-
-        if (request.getEmail() != null && !request.getEmail().equals(customer.getEmail())) {
-            if (customerRepository.existsByEmail(request.getEmail())) {
-                throw new DuplicateCustomerException(request.getEmail(), "update");
-            }
-            customer.setEmail(request.getEmail());
-        }
-
-        if (request.getFirstName() != null) {
-            customer.setFirstName(request.getFirstName());
-        }
-        if (request.getLastName() != null) {
-            customer.setLastName(request.getLastName());
-        }
-        if (request.getPhone() != null) {
-            customer.setPhone(request.getPhone());
-        }
-
-        return CustomerResponse.fromEntity(customerRepository.save(customer));
     }
 
     @Transactional
     public void deleteCustomer(Long id) {
-        customerRepository.delete(
-                customerRepository.findById(id)
-                        .orElseThrow(() -> new CustomerNotFoundException(id))
-        );
+        findCustomerById(id)
+                .ifPresentOrElse(
+                        customerRepository::delete,
+                        throwCustomerNotFound(id)
+                );
+    }
+
+    private Optional<Customer> findCustomerById(Long id) {
+        return customerRepository.findById(id);
+    }
+
+    private void validateEmailNotExists(String email, String operation) {
+        if (customerRepository.existsByEmail(email)) {
+            throw new DuplicateCustomerException(email, operation);
+        }
+    }
+
+    private Customer applyUpdates(Customer customer, UpdateCustomerRequest request) {
+        Optional.ofNullable(request.getEmail())
+                .filter(email -> !email.equals(customer.getEmail()))
+                .ifPresent(email -> {
+                    validateEmailNotExists(email, UPDATE_OPERATION);
+                    customer.setEmail(email);
+                });
+
+        CustomerMapper.applyUpdate(customer, request);
+        return customer;
+    }
+
+    private CustomerResponse saveAndConvert(Customer customer) {
+        return Optional.of(customer)
+                .map(customerRepository::save)
+                .map(CustomerMapper::toResponse)
+                .orElseThrow();
+    }
+
+    private Runnable throwCustomerNotFound(Long id) {
+        return () -> {
+            throw new CustomerNotFoundException(id);
+        };
     }
 }

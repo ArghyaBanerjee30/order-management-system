@@ -1,8 +1,10 @@
 package com.customerservice.exception;
 
+import com.customerservice.constants.ErrorMessages;
+
 public class CustomerNotFoundException extends RuntimeException {
 
     public CustomerNotFoundException(Long id) {
-        super("Customer not found with id: " + id);
+        super(String.format(ErrorMessages.CUSTOMER_NOT_FOUND, id));
     }
 }

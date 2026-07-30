@@ -1,5 +1,6 @@
 package com.customerservice.dto;
 
+import com.customerservice.constants.ValidationMessages;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -13,19 +14,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateCustomerRequest {
 
-    @NotBlank(message = "First name is required")
-    @Size(max = 100, message = "First name must not exceed 100 characters")
+    @NotBlank(message = ValidationMessages.FIRST_NAME_REQUIRED)
+    @Size(max = 100, message = ValidationMessages.FIRST_NAME_MAX_LENGTH)
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
-    @Size(max = 100, message = "Last name must not exceed 100 characters")
+    @NotBlank(message = ValidationMessages.LAST_NAME_REQUIRED)
+    @Size(max = 100, message = ValidationMessages.LAST_NAME_MAX_LENGTH)
     private String lastName;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email must be valid")
-    @Size(max = 255, message = "Email must not exceed 255 characters")
+    @NotBlank(message = ValidationMessages.EMAIL_REQUIRED)
+    @Email(message = ValidationMessages.EMAIL_INVALID)
+    @Size(max = 255, message = ValidationMessages.EMAIL_MAX_LENGTH)
     private String email;
 
-    @Pattern(regexp = "^[0-9+\\-()\\ ]*$", message = "Phone number must be in valid format")
+    @Pattern(regexp = ValidationMessages.PHONE_PATTERN, message = ValidationMessages.PHONE_INVALID_FORMAT)
     private String phone;
 }
