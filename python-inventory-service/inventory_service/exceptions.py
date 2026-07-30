@@ -1,58 +1,45 @@
-"""
-Custom exception classes for the inventory service.
-"""
+"""Custom exception classes for the inventory service."""
+from inventory_service.constants import ErrorMessages
 
 
 class ProductNotFoundException(Exception):
-    """Exception raised when a product is not found."""
-
     def __init__(self, product_id: int):
         self.product_id = product_id
-        self.message = f"Product with id {product_id} not found"
+        self.message = ErrorMessages.PRODUCT_NOT_FOUND.format(product_id)
         super().__init__(self.message)
 
 
 class ProductNotFoundBySKUException(Exception):
-    """Exception raised when a product is not found by SKU."""
-
     def __init__(self, sku: str):
         self.sku = sku
-        self.message = f"Product with SKU '{sku}' not found"
+        self.message = ErrorMessages.PRODUCT_NOT_FOUND_BY_SKU.format(sku)
         super().__init__(self.message)
 
 
 class DuplicateProductException(Exception):
-    """Exception raised when attempting to create a product with duplicate SKU."""
-
     def __init__(self, sku: str):
         self.sku = sku
-        self.message = f"Product with SKU '{sku}' already exists"
+        self.message = ErrorMessages.PRODUCT_DUPLICATE_SKU.format(sku)
         super().__init__(self.message)
 
 
 class InsufficientStockException(Exception):
-    """Exception raised when there is insufficient stock for an operation."""
-
     def __init__(self, product_id: int, available: int, requested: int):
         self.product_id = product_id
         self.available = available
         self.requested = requested
-        self.message = f"Insufficient stock for product {product_id}. Available: {available}, Requested: {requested}"
+        self.message = ErrorMessages.INSUFFICIENT_STOCK.format(product_id, available, requested)
         super().__init__(self.message)
 
 
 class InventoryNotFoundException(Exception):
-    """Exception raised when inventory record is not found."""
-
     def __init__(self, product_id: int):
         self.product_id = product_id
-        self.message = f"Inventory record for product {product_id} not found"
+        self.message = ErrorMessages.INVENTORY_NOT_FOUND.format(product_id)
         super().__init__(self.message)
 
 
 class InvalidOperationException(Exception):
-    """Exception raised when an invalid operation is attempted."""
-
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
