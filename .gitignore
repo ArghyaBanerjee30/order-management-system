@@ -1,6 +1,7 @@
 # Claude Code and Superpowers
 .claude*
 .superpowers/
+.clocignore
 
 # Maven
 target/
