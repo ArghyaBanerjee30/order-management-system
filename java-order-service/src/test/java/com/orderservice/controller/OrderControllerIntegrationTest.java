@@ -2,8 +2,10 @@ package com.orderservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.orderservice.TestDataBuilder;
+import com.orderservice.client.CustomerClient;
 import com.orderservice.client.InventoryClient;
 import com.orderservice.dto.CreateOrderRequest;
+import com.orderservice.dto.CustomerResponse;
 import com.orderservice.dto.InventoryReleaseResponse;
 import com.orderservice.dto.InventoryReserveResponse;
 import com.orderservice.dto.OrderItemRequest;
@@ -56,6 +58,9 @@ class OrderControllerIntegrationTest {
     @MockBean
     private InventoryClient inventoryClient;
 
+    @MockBean
+    private CustomerClient customerClient;
+
     private Customer testCustomer;
     private CreateOrderRequest createOrderRequest;
     private InventoryReserveResponse successfulReserveResponse;
@@ -69,6 +74,17 @@ class OrderControllerIntegrationTest {
         // Create test customer
         testCustomer = TestDataBuilder.createTestCustomer(null, "test@example.com");
         testCustomer = customerRepository.save(testCustomer);
+
+        // Mock customer client to return test customer data
+        CustomerResponse mockCustomerResponse = new CustomerResponse(
+                testCustomer.getId(),
+                testCustomer.getFirstName(),
+                testCustomer.getLastName(),
+                testCustomer.getEmail(),
+                testCustomer.getPhone(),
+                testCustomer.getCreatedAt()
+        );
+        when(customerClient.getCustomer(testCustomer.getId())).thenReturn(mockCustomerResponse);
 
         // Create order request
         createOrderRequest = TestDataBuilder.createOrderRequest(testCustomer.getId());

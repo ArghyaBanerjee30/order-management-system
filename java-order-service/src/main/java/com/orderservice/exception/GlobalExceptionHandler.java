@@ -62,27 +62,6 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle DuplicateCustomerException (409).
-     *
-     * @param ex exception
-     * @param request HTTP request
-     * @return error response with 409 status
-     */
-    @ExceptionHandler(DuplicateCustomerException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateCustomerException(
-            DuplicateCustomerException ex, HttpServletRequest request) {
-        log.error("Duplicate customer: {}", ex.getMessage());
-
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.CONFLICT.value(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
-
-    /**
      * Handle InvalidOrderStatusException (400).
      *
      * @param ex exception
