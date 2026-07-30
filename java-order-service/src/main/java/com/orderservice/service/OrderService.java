@@ -1,5 +1,6 @@
 package com.orderservice.service;
 
+import com.orderservice.client.CustomerClient;
 import com.orderservice.dto.CreateOrderRequest;
 import com.orderservice.dto.OrderItemDTO;
 import com.orderservice.dto.OrderItemRequest;
@@ -8,10 +9,10 @@ import com.orderservice.entity.Order;
 import com.orderservice.entity.OrderItem;
 import com.orderservice.entity.OrderStatus;
 import com.orderservice.exception.CustomerNotFoundException;
+import com.orderservice.exception.CustomerServiceException;
 import com.orderservice.exception.InvalidOrderStatusException;
 import com.orderservice.exception.OrderNotFoundException;
 import com.orderservice.exception.OrderValidationException;
-import com.orderservice.repository.CustomerRepository;
 import com.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final CustomerRepository customerRepository;
+    private final CustomerClient customerClient;
     private final InventoryClient inventoryClient;
 
     /**
@@ -39,11 +40,17 @@ public class OrderService {
      *
      * @param customerId customer ID
      * @throws CustomerNotFoundException if customer not found
+     * @throws CustomerServiceException if customer service is unavailable
      */
     private void validateCustomer(Long customerId) {
-        if (!customerRepository.existsById(customerId)) {
+        try {
+            customerClient.getCustomer(customerId);
+        } catch (CustomerNotFoundException e) {
             log.error("Customer not found: {}", customerId);
-            throw new CustomerNotFoundException(customerId);
+            throw e;
+        } catch (CustomerServiceException e) {
+            log.error("Customer service unavailable: {}", e.getMessage());
+            throw e;
         }
     }
 
@@ -193,6 +200,7 @@ public class OrderService {
      * @param request order creation request
      * @return processed order (CONFIRMED or FAILED)
      * @throws CustomerNotFoundException if customer not found
+     * @throws CustomerServiceException if customer service is unavailable
      * @throws OrderValidationException if order validation fails
      */
     @Transactional
@@ -219,9 +227,9 @@ public class OrderService {
 
             return mapToResponse(order);
 
-        } catch (CustomerNotFoundException e) {
+        } catch (CustomerNotFoundException | CustomerServiceException e) {
             // Customer validation failed - no order was created
-            log.error("Order creation failed: customer not found", e);
+            log.error("Order creation failed: {}", e.getMessage(), e);
             throw e;
 
         } catch (Exception e) {

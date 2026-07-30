@@ -1,15 +1,16 @@
 package com.orderservice.service;
 
 import com.orderservice.TestDataBuilder;
+import com.orderservice.client.CustomerClient;
 import com.orderservice.client.InventoryClient;
 import com.orderservice.dto.*;
 import com.orderservice.entity.Customer;
 import com.orderservice.entity.Order;
 import com.orderservice.entity.OrderStatus;
 import com.orderservice.exception.CustomerNotFoundException;
+import com.orderservice.exception.CustomerServiceException;
 import com.orderservice.exception.InvalidOrderStatusException;
 import com.orderservice.exception.OrderNotFoundException;
-import com.orderservice.repository.CustomerRepository;
 import com.orderservice.repository.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class OrderServiceTest {
     private OrderRepository orderRepository;
 
     @Mock
-    private CustomerRepository customerRepository;
+    private CustomerClient customerClient;
 
     @Mock
     private InventoryClient inventoryClient;
@@ -46,6 +47,7 @@ class OrderServiceTest {
     private OrderService orderService;
 
     private Customer testCustomer;
+    private CustomerResponse testCustomerResponse;
     private Order testOrder;
     private CreateOrderRequest createOrderRequest;
     private InventoryReserveResponse successfulReserveResponse;
@@ -54,6 +56,13 @@ class OrderServiceTest {
     @BeforeEach
     void setUp() {
         testCustomer = TestDataBuilder.createTestCustomer();
+        testCustomerResponse = new CustomerResponse(
+                testCustomer.getId(),
+                testCustomer.getFirstName(),
+                testCustomer.getLastName(),
+                testCustomer.getEmail(),
+                testCustomer.getPhone()
+        );
         testOrder = TestDataBuilder.createTestOrder();
         createOrderRequest = TestDataBuilder.createOrderRequest();
         successfulReserveResponse = TestDataBuilder.createSuccessfulReserveResponse();
@@ -65,7 +74,7 @@ class OrderServiceTest {
     @Test
     void createOrder_Success_FullFlow() {
         // Given
-        when(customerRepository.findById(createOrderRequest.getCustomerId())).thenReturn(Optional.of(testCustomer));
+        when(customerClient.getCustomer(createOrderRequest.getCustomerId())).thenReturn(testCustomerResponse);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order savedOrder = invocation.getArgument(0);
             savedOrder.setId(1L);
@@ -83,7 +92,7 @@ class OrderServiceTest {
         assertThat(response.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
         assertThat(response.getOrderItems()).hasSize(1);
 
-        verify(customerRepository).findById(createOrderRequest.getCustomerId());
+        verify(customerClient).getCustomer(createOrderRequest.getCustomerId());
         verify(orderRepository, times(2)).save(any(Order.class)); // Draft + Confirmed
         verify(inventoryClient).reserveStock(any(InventoryReserveRequest.class));
     }
@@ -93,14 +102,31 @@ class OrderServiceTest {
     @Test
     void createOrder_CustomerNotFound_ThrowsException() {
         // Given
-        when(customerRepository.findById(createOrderRequest.getCustomerId())).thenReturn(Optional.empty());
+        when(customerClient.getCustomer(createOrderRequest.getCustomerId()))
+                .thenThrow(new CustomerNotFoundException(createOrderRequest.getCustomerId()));
 
         // When & Then
         assertThatThrownBy(() -> orderService.createOrder(createOrderRequest))
                 .isInstanceOf(CustomerNotFoundException.class)
                 .hasMessageContaining("Customer not found with id:");
 
-        verify(customerRepository).findById(createOrderRequest.getCustomerId());
+        verify(customerClient).getCustomer(createOrderRequest.getCustomerId());
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(inventoryClient, never()).reserveStock(any(InventoryReserveRequest.class));
+    }
+
+    @Test
+    void createOrder_CustomerServiceUnavailable_ThrowsException() {
+        // Given
+        when(customerClient.getCustomer(createOrderRequest.getCustomerId()))
+                .thenThrow(new CustomerServiceException("Customer service is unavailable"));
+
+        // When & Then
+        assertThatThrownBy(() -> orderService.createOrder(createOrderRequest))
+                .isInstanceOf(CustomerServiceException.class)
+                .hasMessageContaining("Customer service is unavailable");
+
+        verify(customerClient).getCustomer(createOrderRequest.getCustomerId());
         verify(orderRepository, never()).save(any(Order.class));
         verify(inventoryClient, never()).reserveStock(any(InventoryReserveRequest.class));
     }
@@ -110,7 +136,7 @@ class OrderServiceTest {
     @Test
     void createOrder_InventoryReservationFailed_OrderMarkedAsFailed() {
         // Given
-        when(customerRepository.findById(createOrderRequest.getCustomerId())).thenReturn(Optional.of(testCustomer));
+        when(customerClient.getCustomer(createOrderRequest.getCustomerId())).thenReturn(testCustomerResponse);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order savedOrder = invocation.getArgument(0);
             savedOrder.setId(1L);
@@ -126,7 +152,7 @@ class OrderServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OrderStatus.FAILED);
 
-        verify(customerRepository).findById(createOrderRequest.getCustomerId());
+        verify(customerClient).getCustomer(createOrderRequest.getCustomerId());
         verify(orderRepository, times(2)).save(any(Order.class)); // Draft + Failed
         verify(inventoryClient).reserveStock(any(InventoryReserveRequest.class));
     }
@@ -138,7 +164,7 @@ class OrderServiceTest {
         failedResponse.setSuccess(false);
         failedResponse.setMessage("Insufficient stock");
 
-        when(customerRepository.findById(createOrderRequest.getCustomerId())).thenReturn(Optional.of(testCustomer));
+        when(customerClient.getCustomer(createOrderRequest.getCustomerId())).thenReturn(testCustomerResponse);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order savedOrder = invocation.getArgument(0);
             savedOrder.setId(1L);
@@ -229,7 +255,7 @@ class OrderServiceTest {
     void getOrdersByCustomerId_CustomerExists() {
         // Given
         Long customerId = 1L;
-        when(customerRepository.findById(customerId)).thenReturn(Optional.of(testCustomer));
+        when(customerClient.getCustomer(customerId)).thenReturn(testCustomerResponse);
         when(orderRepository.findByCustomerId(customerId)).thenReturn(Arrays.asList(testOrder));
 
         // When
@@ -239,7 +265,7 @@ class OrderServiceTest {
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).getCustomerId()).isEqualTo(customerId);
 
-        verify(customerRepository).findById(customerId);
+        verify(customerClient).getCustomer(customerId);
         verify(orderRepository).findByCustomerId(customerId);
     }
 
@@ -247,14 +273,15 @@ class OrderServiceTest {
     void getOrdersByCustomerId_CustomerNotFound_ThrowsException() {
         // Given
         Long customerId = 999L;
-        when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
+        when(customerClient.getCustomer(customerId))
+                .thenThrow(new CustomerNotFoundException(customerId));
 
         // When & Then
         assertThatThrownBy(() -> orderService.getOrdersByCustomerId(customerId))
                 .isInstanceOf(CustomerNotFoundException.class)
                 .hasMessageContaining("Customer not found with id: 999");
 
-        verify(customerRepository).findById(customerId);
+        verify(customerClient).getCustomer(customerId);
         verify(orderRepository, never()).findByCustomerId(anyLong());
     }
 
