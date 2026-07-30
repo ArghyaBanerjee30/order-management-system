@@ -13,8 +13,21 @@ Python 3.11+ • FastAPI • SQLAlchemy • PostgreSQL
 
 ## Setup
 
+**1. Create virtual environment**
+```bash
+cd python-inventory-service
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+**2. Install dependencies**
 ```bash
 pip install -r requirements.txt
+```
+
+**3. Setup database**
+```bash
+alembic upgrade head
 ```
 
 ## Configuration
@@ -25,15 +38,11 @@ Update `.env` or `database/config.py`:
 DATABASE_URL=postgresql://postgres:password@localhost:5432/inventorydb
 ```
 
-## Database Setup
-
-```bash
-alembic upgrade head
-```
-
 ## Start Service
 
+**Ensure virtual environment is activated:**
 ```bash
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 uvicorn inventory_service.main:app --reload --port 8000
 ```
 

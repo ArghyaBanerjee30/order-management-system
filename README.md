@@ -36,6 +36,8 @@ Three independent services communicate via REST APIs:
 **1. Start Inventory Service**
 ```bash
 cd python-inventory-service
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 alembic upgrade head
 uvicorn inventory_service.main:app --reload --port 8000
