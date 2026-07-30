@@ -111,6 +111,7 @@ class OrderControllerIntegrationTest {
     @Test
     void createOrder_CustomerNotFound_Returns404() throws Exception {
         createOrderRequest.setCustomerId(999L);
+        when(customerClient.getCustomer(999L)).thenThrow(new com.orderservice.exception.CustomerNotFoundException(999L));
 
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)

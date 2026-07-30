@@ -21,6 +21,10 @@ logging:
     org.springframework.web: INFO
 
 # External Services Configuration
+inventory:
+  service:
+    url: http://localhost:8000
+
 customer:
   service:
     url: http://localhost:8081

@@ -26,6 +26,6 @@ public class CreateCustomerRequest {
     @Size(max = 255, message = "Email must not exceed 255 characters")
     private String email;
 
-    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Phone number must be in valid format")
+    @Pattern(regexp = "^[0-9+\\-()\\ ]*$", message = "Phone number must be in valid format")
     private String phone;
 }
