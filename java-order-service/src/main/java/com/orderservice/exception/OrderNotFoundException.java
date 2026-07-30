@@ -1,8 +1,7 @@
 package com.orderservice.exception;
 
-/**
- * Exception thrown when an order is not found.
- */
+import com.orderservice.constants.ErrorMessages;
+
 public class OrderNotFoundException extends RuntimeException {
 
     public OrderNotFoundException(String message) {
@@ -10,6 +9,6 @@ public class OrderNotFoundException extends RuntimeException {
     }
 
     public OrderNotFoundException(Long id) {
-        super("Order not found with id: " + id);
+        super(String.format(ErrorMessages.ORDER_NOT_FOUND, id));
     }
 }

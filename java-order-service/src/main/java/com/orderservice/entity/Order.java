@@ -1,5 +1,6 @@
 package com.orderservice.entity;
 
+import com.orderservice.constants.ValidationMessages;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -14,9 +15,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Order entity representing an order in the system.
- */
 @Entity
 @Table(name = "orders")
 @Data
@@ -28,17 +26,17 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Customer ID is required")
+    @NotNull(message = ValidationMessages.CUSTOMER_ID_REQUIRED)
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
-    @NotNull(message = "Order status is required")
+    @NotNull(message = ValidationMessages.ORDER_STATUS_REQUIRED)
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private OrderStatus status;
 
-    @NotNull(message = "Total amount is required")
-    @DecimalMin(value = "0.0", inclusive = true, message = "Total amount must be non-negative")
+    @NotNull(message = ValidationMessages.TOTAL_AMOUNT_REQUIRED)
+    @DecimalMin(value = "0.0", inclusive = true, message = ValidationMessages.TOTAL_AMOUNT_NON_NEGATIVE)
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
@@ -53,17 +51,11 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    /**
-     * Helper method to add an order item to this order
-     */
     public void addOrderItem(OrderItem item) {
         orderItems.add(item);
         item.setOrder(this);
     }
 
-    /**
-     * Helper method to remove an order item from this order
-     */
     public void removeOrderItem(OrderItem item) {
         orderItems.remove(item);
         item.setOrder(null);

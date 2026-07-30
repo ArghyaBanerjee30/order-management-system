@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -17,9 +16,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
-/**
- * REST controller for Order operations.
- */
 @RestController
 @RequestMapping("/orders")
 @RequiredArgsConstructor
@@ -28,12 +24,6 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    /**
-     * Create a new order.
-     *
-     * @param request order creation request
-     * @return created order
-     */
     @PostMapping
     @Operation(summary = "Create a new order", description = "Creates a new order with inventory reservation")
     @ApiResponses(value = {
@@ -53,25 +43,13 @@ public class OrderController {
         return ResponseEntity.created(location).body(response);
     }
 
-    /**
-     * Get all orders.
-     *
-     * @return list of all orders
-     */
     @GetMapping
     @Operation(summary = "Get all orders", description = "Retrieves all orders in the system")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved orders")
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
-        List<OrderResponse> orders = orderService.getAllOrders();
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(orderService.getAllOrders());
     }
 
-    /**
-     * Get an order by ID.
-     *
-     * @param id order ID
-     * @return order details
-     */
     @GetMapping("/{id}")
     @Operation(summary = "Get order by ID", description = "Retrieves a specific order by its ID")
     @ApiResponses(value = {
@@ -79,16 +57,9 @@ public class OrderController {
             @ApiResponse(responseCode = "404", description = "Order not found")
     })
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
-        OrderResponse response = orderService.getOrderById(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
-    /**
-     * Get all orders for a specific customer.
-     *
-     * @param customerId customer ID
-     * @return list of customer's orders
-     */
     @GetMapping("/customer/{customerId}")
     @Operation(summary = "Get orders by customer", description = "Retrieves all orders for a specific customer")
     @ApiResponses(value = {
@@ -96,16 +67,9 @@ public class OrderController {
             @ApiResponse(responseCode = "404", description = "Customer not found")
     })
     public ResponseEntity<List<OrderResponse>> getOrdersByCustomerId(@PathVariable Long customerId) {
-        List<OrderResponse> orders = orderService.getOrdersByCustomerId(customerId);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(orderService.getOrdersByCustomerId(customerId));
     }
 
-    /**
-     * Cancel an order.
-     *
-     * @param id order ID
-     * @return cancelled order
-     */
     @PostMapping("/{id}/cancel")
     @Operation(summary = "Cancel an order", description = "Cancels an order and releases reserved inventory")
     @ApiResponses(value = {
@@ -114,7 +78,6 @@ public class OrderController {
             @ApiResponse(responseCode = "400", description = "Order cannot be cancelled (invalid status)")
     })
     public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long id) {
-        OrderResponse response = orderService.cancelOrder(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(orderService.cancelOrder(id));
     }
 }

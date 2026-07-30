@@ -1,8 +1,7 @@
 package com.orderservice.exception;
 
-/**
- * Exception thrown when a customer is not found.
- */
+import com.orderservice.constants.ErrorMessages;
+
 public class CustomerNotFoundException extends RuntimeException {
 
     public CustomerNotFoundException(String message) {
@@ -10,6 +9,6 @@ public class CustomerNotFoundException extends RuntimeException {
     }
 
     public CustomerNotFoundException(Long id) {
-        super("Customer not found with id: " + id);
+        super(String.format(ErrorMessages.CUSTOMER_NOT_FOUND, id));
     }
 }

@@ -3,7 +3,7 @@ package com.orderservice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.orderservice.TestDataBuilder;
 import com.orderservice.client.CustomerClient;
-import com.orderservice.client.InventoryClient;
+import com.orderservice.service.InventoryClient;
 import com.orderservice.dto.CreateOrderRequest;
 import com.orderservice.dto.CustomerResponse;
 import com.orderservice.dto.InventoryReleaseResponse;
@@ -27,7 +27,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -92,7 +92,7 @@ class OrderControllerIntegrationTest {
     @Test
     void createOrder_ValidRequest_Returns201() throws Exception {
         // Mock inventory service
-        when(inventoryClient.reserveStock(any())).thenReturn(successfulReserveResponse);
+        when(inventoryClient.reserveStock(anyLong(), anyInt())).thenReturn(successfulReserveResponse);
 
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -184,7 +184,7 @@ class OrderControllerIntegrationTest {
         InventoryReserveResponse failedResponse = new InventoryReserveResponse();
         failedResponse.setSuccess(false);
         failedResponse.setMessage("Insufficient stock");
-        when(inventoryClient.reserveStock(any())).thenReturn(failedResponse);
+        when(inventoryClient.reserveStock(anyLong(), anyInt())).thenReturn(failedResponse);
 
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -198,7 +198,7 @@ class OrderControllerIntegrationTest {
     @Test
     void getAllOrders_ReturnsListOfOrders() throws Exception {
         // Create test orders
-        when(inventoryClient.reserveStock(any())).thenReturn(successfulReserveResponse);
+        when(inventoryClient.reserveStock(anyLong(), anyInt())).thenReturn(successfulReserveResponse);
 
         mockMvc.perform(post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -223,7 +223,7 @@ class OrderControllerIntegrationTest {
     @Test
     void getOrderById_Found_Returns200() throws Exception {
         // Create test order
-        when(inventoryClient.reserveStock(any())).thenReturn(successfulReserveResponse);
+        when(inventoryClient.reserveStock(anyLong(), anyInt())).thenReturn(successfulReserveResponse);
 
         String createResponse = mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -253,7 +253,7 @@ class OrderControllerIntegrationTest {
     @Test
     void getOrdersByCustomerId_ReturnsCustomerOrders() throws Exception {
         // Create test order
-        when(inventoryClient.reserveStock(any())).thenReturn(successfulReserveResponse);
+        when(inventoryClient.reserveStock(anyLong(), anyInt())).thenReturn(successfulReserveResponse);
 
         mockMvc.perform(post("/orders")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -287,8 +287,8 @@ class OrderControllerIntegrationTest {
     @Test
     void cancelOrder_Success_Returns200() throws Exception {
         // Create test order
-        when(inventoryClient.reserveStock(any())).thenReturn(successfulReserveResponse);
-        when(inventoryClient.releaseStock(any())).thenReturn(successfulReleaseResponse);
+        when(inventoryClient.reserveStock(anyLong(), anyInt())).thenReturn(successfulReserveResponse);
+        when(inventoryClient.releaseStock(anyLong(), anyInt())).thenReturn(successfulReleaseResponse);
 
         String createResponse = mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -328,8 +328,8 @@ class OrderControllerIntegrationTest {
     @Test
     void cancelOrder_AlreadyCancelled_Returns400() throws Exception {
         // Create and cancel order
-        when(inventoryClient.reserveStock(any())).thenReturn(successfulReserveResponse);
-        when(inventoryClient.releaseStock(any())).thenReturn(successfulReleaseResponse);
+        when(inventoryClient.reserveStock(anyLong(), anyInt())).thenReturn(successfulReserveResponse);
+        when(inventoryClient.releaseStock(anyLong(), anyInt())).thenReturn(successfulReleaseResponse);
 
         String createResponse = mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)

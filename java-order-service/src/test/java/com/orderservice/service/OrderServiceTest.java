@@ -2,7 +2,6 @@ package com.orderservice.service;
 
 import com.orderservice.TestDataBuilder;
 import com.orderservice.client.CustomerClient;
-import com.orderservice.client.InventoryClient;
 import com.orderservice.dto.*;
 import com.orderservice.entity.Order;
 import com.orderservice.entity.OrderStatus;
@@ -78,7 +77,7 @@ class OrderServiceTest {
             savedOrder.setId(1L);
             return savedOrder;
         });
-        when(inventoryClient.reserveStock(any(InventoryReserveRequest.class))).thenReturn(successfulReserveResponse);
+        when(inventoryClient.reserveStock(anyLong(), anyInt())).thenReturn(successfulReserveResponse);
 
         // When
         OrderResponse response = orderService.createOrder(createOrderRequest);
@@ -92,7 +91,7 @@ class OrderServiceTest {
 
         verify(customerClient).getCustomer(createOrderRequest.getCustomerId());
         verify(orderRepository, times(2)).save(any(Order.class)); // Draft + Confirmed
-        verify(inventoryClient).reserveStock(any(InventoryReserveRequest.class));
+        verify(inventoryClient).reserveStock(anyLong(), anyInt());
     }
 
     // Create Order Tests - Customer Not Found
@@ -110,7 +109,7 @@ class OrderServiceTest {
 
         verify(customerClient).getCustomer(createOrderRequest.getCustomerId());
         verify(orderRepository, never()).save(any(Order.class));
-        verify(inventoryClient, never()).reserveStock(any(InventoryReserveRequest.class));
+        verify(inventoryClient, never()).reserveStock(anyLong(), anyInt());
     }
 
     @Test
@@ -126,7 +125,7 @@ class OrderServiceTest {
 
         verify(customerClient).getCustomer(createOrderRequest.getCustomerId());
         verify(orderRepository, never()).save(any(Order.class));
-        verify(inventoryClient, never()).reserveStock(any(InventoryReserveRequest.class));
+        verify(inventoryClient, never()).reserveStock(anyLong(), anyInt());
     }
 
     // Create Order Tests - Inventory Reservation Failed
@@ -140,7 +139,7 @@ class OrderServiceTest {
             savedOrder.setId(1L);
             return savedOrder;
         });
-        when(inventoryClient.reserveStock(any(InventoryReserveRequest.class)))
+        when(inventoryClient.reserveStock(anyLong(), anyInt()))
                 .thenThrow(new RuntimeException("Insufficient stock"));
 
         // When
@@ -152,7 +151,7 @@ class OrderServiceTest {
 
         verify(customerClient).getCustomer(createOrderRequest.getCustomerId());
         verify(orderRepository, times(2)).save(any(Order.class)); // Draft + Failed
-        verify(inventoryClient).reserveStock(any(InventoryReserveRequest.class));
+        verify(inventoryClient).reserveStock(anyLong(), anyInt());
     }
 
     @Test
@@ -168,7 +167,7 @@ class OrderServiceTest {
             savedOrder.setId(1L);
             return savedOrder;
         });
-        when(inventoryClient.reserveStock(any(InventoryReserveRequest.class))).thenReturn(failedResponse);
+        when(inventoryClient.reserveStock(anyLong(), anyInt())).thenReturn(failedResponse);
 
         // When
         OrderResponse response = orderService.createOrder(createOrderRequest);
@@ -177,7 +176,7 @@ class OrderServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OrderStatus.FAILED);
 
-        verify(inventoryClient).reserveStock(any(InventoryReserveRequest.class));
+        verify(inventoryClient).reserveStock(anyLong(), anyInt());
     }
 
     // Get Order By ID Tests
@@ -293,7 +292,7 @@ class OrderServiceTest {
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(confirmedOrder));
         when(orderRepository.save(any(Order.class))).thenReturn(confirmedOrder);
-        when(inventoryClient.releaseStock(any(InventoryReleaseRequest.class))).thenReturn(successfulReleaseResponse);
+        when(inventoryClient.releaseStock(anyLong(), anyInt())).thenReturn(successfulReleaseResponse);
 
         // When
         OrderResponse response = orderService.cancelOrder(orderId);
@@ -303,7 +302,7 @@ class OrderServiceTest {
         assertThat(response.getStatus()).isEqualTo(OrderStatus.CANCELLED);
 
         verify(orderRepository).findById(orderId);
-        verify(inventoryClient).releaseStock(any(InventoryReleaseRequest.class));
+        verify(inventoryClient).releaseStock(anyLong(), anyInt());
         verify(orderRepository).save(confirmedOrder);
     }
 
@@ -319,7 +318,7 @@ class OrderServiceTest {
                 .hasMessageContaining("Order not found with id: 999");
 
         verify(orderRepository).findById(orderId);
-        verify(inventoryClient, never()).releaseStock(any(InventoryReleaseRequest.class));
+        verify(inventoryClient, never()).releaseStock(anyLong(), anyInt());
     }
 
     @Test
@@ -337,7 +336,7 @@ class OrderServiceTest {
                 .hasMessageContaining("DRAFT");
 
         verify(orderRepository).findById(orderId);
-        verify(inventoryClient, never()).releaseStock(any(InventoryReleaseRequest.class));
+        verify(inventoryClient, never()).releaseStock(anyLong(), anyInt());
         verify(orderRepository, never()).save(any(Order.class));
     }
 
@@ -356,7 +355,7 @@ class OrderServiceTest {
                 .hasMessageContaining("CANCELLED");
 
         verify(orderRepository).findById(orderId);
-        verify(inventoryClient, never()).releaseStock(any(InventoryReleaseRequest.class));
+        verify(inventoryClient, never()).releaseStock(anyLong(), anyInt());
     }
 
     @Test
@@ -367,7 +366,7 @@ class OrderServiceTest {
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(confirmedOrder));
         when(orderRepository.save(any(Order.class))).thenReturn(confirmedOrder);
-        when(inventoryClient.releaseStock(any(InventoryReleaseRequest.class)))
+        when(inventoryClient.releaseStock(anyLong(), anyInt()))
                 .thenThrow(new RuntimeException("Inventory service unavailable"));
 
         // When
@@ -378,7 +377,7 @@ class OrderServiceTest {
         assertThat(response.getStatus()).isEqualTo(OrderStatus.CANCELLED);
 
         verify(orderRepository).findById(orderId);
-        verify(inventoryClient).releaseStock(any(InventoryReleaseRequest.class));
+        verify(inventoryClient).releaseStock(anyLong(), anyInt());
         verify(orderRepository).save(confirmedOrder);
     }
 }
