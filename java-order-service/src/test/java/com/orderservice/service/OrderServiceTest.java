@@ -4,7 +4,6 @@ import com.orderservice.TestDataBuilder;
 import com.orderservice.client.CustomerClient;
 import com.orderservice.client.InventoryClient;
 import com.orderservice.dto.*;
-import com.orderservice.entity.Customer;
 import com.orderservice.entity.Order;
 import com.orderservice.entity.OrderStatus;
 import com.orderservice.exception.CustomerNotFoundException;
@@ -46,7 +45,6 @@ class OrderServiceTest {
     @InjectMocks
     private OrderService orderService;
 
-    private Customer testCustomer;
     private CustomerResponse testCustomerResponse;
     private Order testOrder;
     private CreateOrderRequest createOrderRequest;
@@ -55,13 +53,13 @@ class OrderServiceTest {
 
     @BeforeEach
     void setUp() {
-        testCustomer = TestDataBuilder.createTestCustomer();
         testCustomerResponse = new CustomerResponse(
-                testCustomer.getId(),
-                testCustomer.getFirstName(),
-                testCustomer.getLastName(),
-                testCustomer.getEmail(),
-                testCustomer.getPhone()
+                1L,
+                "John",
+                "Doe",
+                "john.doe@example.com",
+                "+1-555-123-4567",
+                null
         );
         testOrder = TestDataBuilder.createTestOrder();
         createOrderRequest = TestDataBuilder.createOrderRequest();

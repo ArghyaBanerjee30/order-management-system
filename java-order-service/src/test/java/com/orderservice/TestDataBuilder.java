@@ -1,7 +1,6 @@
 package com.orderservice;
 
 import com.orderservice.dto.*;
-import com.orderservice.entity.Customer;
 import com.orderservice.entity.Order;
 import com.orderservice.entity.OrderItem;
 import com.orderservice.entity.OrderStatus;
@@ -15,44 +14,6 @@ import java.util.List;
  * Utility class for building test data.
  */
 public class TestDataBuilder {
-
-    // Customer Test Data Builders
-
-    public static Customer createTestCustomer() {
-        Customer customer = new Customer();
-        customer.setId(1L);
-        customer.setFirstName("John");
-        customer.setLastName("Doe");
-        customer.setEmail("john.doe@example.com");
-        customer.setPhone("+1-555-123-4567");
-        customer.setCreatedAt(LocalDateTime.now());
-        return customer;
-    }
-
-    public static Customer createTestCustomer(Long id, String email) {
-        Customer customer = createTestCustomer();
-        customer.setId(id);
-        customer.setEmail(email);
-        return customer;
-    }
-
-    public static CreateCustomerRequest createCustomerRequest() {
-        CreateCustomerRequest request = new CreateCustomerRequest();
-        request.setFirstName("John");
-        request.setLastName("Doe");
-        request.setEmail("john.doe@example.com");
-        request.setPhone("+1-555-123-4567");
-        return request;
-    }
-
-    public static UpdateCustomerRequest createUpdateCustomerRequest() {
-        UpdateCustomerRequest request = new UpdateCustomerRequest();
-        request.setFirstName("Jane");
-        request.setLastName("Smith");
-        request.setEmail("jane.smith@example.com");
-        request.setPhone("+1-555-987-6543");
-        return request;
-    }
 
     // Order Test Data Builders
 
