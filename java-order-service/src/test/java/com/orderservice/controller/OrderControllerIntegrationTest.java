@@ -9,10 +9,8 @@ import com.orderservice.dto.CustomerResponse;
 import com.orderservice.dto.InventoryReleaseResponse;
 import com.orderservice.dto.InventoryReserveResponse;
 import com.orderservice.dto.OrderItemRequest;
-import com.orderservice.entity.Customer;
 import com.orderservice.entity.Order;
 import com.orderservice.entity.OrderStatus;
-import com.orderservice.repository.CustomerRepository;
 import com.orderservice.repository.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,9 +45,6 @@ class OrderControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
@@ -61,33 +56,31 @@ class OrderControllerIntegrationTest {
     @MockBean
     private CustomerClient customerClient;
 
-    private Customer testCustomer;
+    private Long testCustomerId;
     private CreateOrderRequest createOrderRequest;
     private InventoryReserveResponse successfulReserveResponse;
     private InventoryReleaseResponse successfulReleaseResponse;
 
     @BeforeEach
     void setUp() {
-        customerRepository.deleteAll();
         orderRepository.deleteAll();
 
-        // Create test customer
-        testCustomer = TestDataBuilder.createTestCustomer(null, "test@example.com");
-        testCustomer = customerRepository.save(testCustomer);
+        // Use a simple test customer ID
+        testCustomerId = 1L;
 
         // Mock customer client to return test customer data
         CustomerResponse mockCustomerResponse = new CustomerResponse(
-                testCustomer.getId(),
-                testCustomer.getFirstName(),
-                testCustomer.getLastName(),
-                testCustomer.getEmail(),
-                testCustomer.getPhone(),
-                testCustomer.getCreatedAt()
+                testCustomerId,
+                "John",
+                "Doe",
+                "test@example.com",
+                "+1-555-0000",
+                null
         );
-        when(customerClient.getCustomer(testCustomer.getId())).thenReturn(mockCustomerResponse);
+        when(customerClient.getCustomer(testCustomerId)).thenReturn(mockCustomerResponse);
 
         // Create order request
-        createOrderRequest = TestDataBuilder.createOrderRequest(testCustomer.getId());
+        createOrderRequest = TestDataBuilder.createOrderRequest(testCustomerId);
 
         // Setup inventory responses
         successfulReserveResponse = TestDataBuilder.createSuccessfulReserveResponse();
@@ -107,7 +100,7 @@ class OrderControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.customerId").value(testCustomer.getId()))
+                .andExpect(jsonPath("$.customerId").value(testCustomerId))
                 .andExpect(jsonPath("$.status").value(OrderStatus.CONFIRMED.toString()))
                 .andExpect(jsonPath("$.orderItems").isArray())
                 .andExpect(jsonPath("$.orderItems.length()").value(1))
@@ -241,7 +234,7 @@ class OrderControllerIntegrationTest {
         mockMvc.perform(get("/orders/{id}", orderId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(orderId))
-                .andExpect(jsonPath("$.customerId").value(testCustomer.getId()))
+                .andExpect(jsonPath("$.customerId").value(testCustomerId))
                 .andExpect(jsonPath("$.status").exists())
                 .andExpect(jsonPath("$.orderItems").isArray());
     }
@@ -265,11 +258,11 @@ class OrderControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createOrderRequest)));
 
-        mockMvc.perform(get("/orders/customer/{customerId}", testCustomer.getId()))
+        mockMvc.perform(get("/orders/customer/{customerId}", testCustomerId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$[0].customerId").value(testCustomer.getId()));
+                .andExpect(jsonPath("$[0].customerId").value(testCustomerId));
     }
 
     @Test
@@ -282,7 +275,7 @@ class OrderControllerIntegrationTest {
 
     @Test
     void getOrdersByCustomerId_NoOrders_ReturnsEmptyArray() throws Exception {
-        mockMvc.perform(get("/orders/customer/{customerId}", testCustomer.getId()))
+        mockMvc.perform(get("/orders/customer/{customerId}", testCustomerId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(0));
@@ -321,7 +314,7 @@ class OrderControllerIntegrationTest {
     void cancelOrder_InvalidStatus_Returns400() throws Exception {
         // Create a draft order manually (bypass inventory reservation)
         Order draftOrder = TestDataBuilder.createTestOrder();
-        draftOrder.setCustomerId(testCustomer.getId());
+        draftOrder.setCustomerId(testCustomerId);
         draftOrder.setStatus(OrderStatus.DRAFT);
         draftOrder = orderRepository.save(draftOrder);
 
